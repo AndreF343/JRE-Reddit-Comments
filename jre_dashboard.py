@@ -5,7 +5,6 @@
 
 
 import os
-import re
 import dash
 import base64
 import sqlite3
@@ -13,7 +12,6 @@ import requests
 import wordcloud
 import pandas as pd
 from dash import html
-import seaborn as sns
 from io import BytesIO
 from openai import OpenAI
 from dash import dcc, html
@@ -28,8 +26,8 @@ from dash.dependencies import Input, Output
 
 # Set OpenAI API key
 oai_client = OpenAI(
-    api_key = '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'
-    # api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+    # api_key = ''
+    api_key=os.environ.get("OPENAI_API_KEY")
 )
 
 
