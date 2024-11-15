@@ -1,0 +1,16 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore environment and dependencies
+venv/
+*.env
+
+# Ignore Docker intermediate files
+*.log
+*.pid
+
+jre_dashboard.ipynb

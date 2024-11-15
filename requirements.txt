@@ -1,0 +1,10 @@
+jupyter
+wordcloud
+pandas
+seaborn
+openai
+dash
+matplotlib
+dash-bootstrap-components
+plotly
+papermill
