@@ -49,7 +49,7 @@ To build and deploy the Dockerized dashboard, follow these steps:
 _Pending addtional data points._
 
 ## To-Do
-- Analysis of topic-specific sentiment
-- Analysis on episodes missing posts
-- _coming soon_
+-Analysis of topic-specific sentiment
+-Analysis on episodes missing posts
+-_coming soon_
 
