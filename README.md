@@ -37,6 +37,7 @@ This repository contains a dockerized demo of the dashboard that displays some b
 
 ## Demo
 
+If Docker is not installed. Install it for your OS [here](https://docs.docker.com/engine/install/).
 To build and deploy the Dockerized dashboard, follow these steps:
 
 1. Download the repository.
