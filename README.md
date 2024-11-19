@@ -19,6 +19,8 @@ Over the last several weeks, I've developed a set of scripts to scrape Reddit co
 This repository contains a dockerized demo of the dashboard that displays some basic stats on the reddit posts and comments. Instructions on how to deploy the dashboard can be found in the Demo section. I have also included some sample scripts that I used to scraping data and automating certain tasks (nightly backups, transforms, etc.), however they are just for show and have not been configured to be runnable.
 
 ## Process
+![app_component_diagram_adjusted](https://github.com/user-attachments/assets/90dea038-5b29-4768-86dd-664c858c1c96)
+
 1. **Get Reddit URLs**: Developed custom scripts to find relevant posts on the r/joerogan subreddit that pertain specifically to JRE episodes.
 2. **EC2 Deployment**: The entire pipeline runs on an Amazon EC2 instance, with automation that allows the process to run without manual intervention, and alerts for errors and cpu overutilization.
 3. **Proxy Service**: Because Reddit immediately blocked AWS IPs, I routed my requests through a proxy service (SmartProxy).
