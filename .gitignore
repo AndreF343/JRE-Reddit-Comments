@@ -2,8 +2,9 @@
 __pycache__/
 *.pyc
 
-# Ignore Jupyter Notebook checkpoints
+# Ignore Jupyter Notebook and checkpoints
 .ipynb_checkpoints/
+.ipynb
 
 # Ignore environment and dependencies
 venv/

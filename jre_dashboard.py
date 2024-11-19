@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[6]:
+# In[1]:
 
 
 import os
 import re
 import ast
 import dash
+import spacy
 import base64
 import sqlite3
 import requests
@@ -18,6 +19,7 @@ import seaborn as sns
 from io import BytesIO
 from openai import OpenAI
 from dash import dcc, html
+from itertools import chain
 from bs4 import BeautifulSoup
 from datetime import datetime
 from urllib.parse import quote
@@ -27,17 +29,24 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 
 
-# In[73]:
+# In[ ]:
+
+
+# Load SpaCy's English model
+nlp = spacy.load("en_core_web_sm")
+
+
+# In[2]:
 
 
 # Set OpenAI API key
 oai_client = OpenAI(
-    api_key = ''
+    api_key = 'get your own key'
     # api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
 )
 
 
-# In[8]:
+# In[3]:
 
 
 conn = sqlite3.connect(r"joerogan.db")
@@ -54,9 +63,6 @@ posts_scanned = 0
 for table_name in tables:
     table_name = str(table_name[0])
     if table_name != 'reddit_posts':
-        # if posts_scanned > 10:
-        #     break
-        # print(table_name)
         posts_scanned += 1
         table = pd.read_sql_query("SELECT * from %s" % table_name, conn)
         df_list.append(table)
@@ -65,7 +71,7 @@ final_df = pd.concat(df_list)
 conn.close()
 
 
-# In[9]:
+# In[4]:
 
 
 # Clean column names by stripping whitespace and converting to lowercase
@@ -83,7 +89,7 @@ df_merged = final_df.merge(post_df[['episode_number', 'episode_guest', 'post_upl
                             on='episode_number', how='left')
 
 
-# In[10]:
+# In[5]:
 
 
 df_merged = df_merged[~df_merged.index.duplicated(keep='first')]
@@ -98,13 +104,13 @@ except:
     df_merged['post_upload_date'] = pd.to_datetime(df_merged['post_upload_date'], format='%d %b %Y', dayfirst=True, errors='raise')
 
 
-# In[11]:
+# In[6]:
 
 
 df_merged.info()
 
 
-# In[12]:
+# In[7]:
 
 
 # Calculate Metrics
@@ -117,15 +123,48 @@ lowest_upvote_ratio_post = post_df.loc[post_df[(post_df['post_upvotes'] >= 100) 
 highest_voted_comment = df_merged.loc[df_merged['comment_upvotes'].idxmax()]
 lowest_voted_comment = df_merged.loc[df_merged['comment_upvotes'].idxmin()]
 
-most_frequent_guests = post_df['episode_guest'].value_counts().head(3)
-
 highest_sentiment_guest = df_merged.groupby('episode_guest')['sentiment'].mean().idxmax()
 lowest_sentiment_guest = df_merged.groupby('episode_guest')['sentiment'].mean().idxmin()
 highest_sentiment_score = df_merged.groupby('episode_guest')['sentiment'].mean().max()
 lowest_sentiment_score = df_merged.groupby('episode_guest')['sentiment'].mean().min()
 
 
-# In[13]:
+# In[ ]:
+
+
+# Define the mapping for special terms
+special_guests = {
+    "Protect Our Parks": ["Ari Shaffir", "Shane Gillis", "Mark Normand"]
+}
+
+# Replace special terms with their corresponding guest names
+def expand_special_guests(guest_list):
+    for special_term, additional_guests in special_guests.items():
+        if special_term in guest_list:
+            guest_list += ', ' + ', '.join(additional_guests)
+    return guest_list
+
+
+# In[ ]:
+
+
+# Apply the function to expand special terms in the 'episode_guest' column
+post_df['episode_guest'] = post_df['episode_guest'].apply(expand_special_guests)
+
+# all_guests = post_df['episode_guest'].str.split(", ")
+all_guests = post_df['episode_guest'].str.split(r'[,&]+')
+
+# Flatten the list of lists into a single list
+flattened_guests = list(chain.from_iterable(all_guests))
+
+# Strip any leading/trailing whitespace from each guest
+flattened_guests = [guest.strip() for guest in flattened_guests]
+
+# Convert the flattened list into a Series and count values
+most_frequent_guests = pd.Series(flattened_guests).value_counts().head(3)
+
+
+# In[ ]:
 
 
 # Precompute values to improve performance
@@ -134,7 +173,7 @@ unique_posts_count = len(df_merged['reddit_post_id'].unique())
 total_comments_count = len(df_merged)
 
 
-# In[26]:
+# In[8]:
 
 
 # Sentiment Plot Function
@@ -183,34 +222,38 @@ def get_guest_images(guests):
     guest_images = {}
 
     for guest in guests:
-        try:
-            # Step 1: Search Wikipedia for the guest
-            search_url = f"https://en.wikipedia.org/wiki/{quote(guest)}"
-            response = requests.get(search_url)
-            response.raise_for_status()
-            
-            # Step 2: Parse the page with BeautifulSoup
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Step 3: Find the main infobox image
-            infobox = soup.find('table', {'class': 'infobox'})
-            if infobox:
-                image_tag = infobox.find('img')
-                if image_tag:
-                    image_url = f"https:{image_tag['src']}"
-                    guest_images[guest] = image_url
+        if guest == "Brian Redban":
+            # Use the local image from the assets folder for Brian Redban
+            guest_images[guest] = '/assets/redban.jpg'
+        else:
+            try:
+                # Step 1: Search Wikipedia for the guest
+                search_url = f"https://en.wikipedia.org/wiki/{quote(guest)}"
+                response = requests.get(search_url)
+                response.raise_for_status()
+                
+                # Step 2: Parse the page with BeautifulSoup
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Step 3: Find the main infobox image
+                infobox = soup.find('table', {'class': 'infobox'})
+                if infobox:
+                    image_tag = infobox.find('img')
+                    if image_tag:
+                        image_url = f"https:{image_tag['src']}"
+                        guest_images[guest] = image_url
+                    else:
+                        guest_images[guest] = ''  # No image found
                 else:
-                    guest_images[guest] = ''  # No image found
-            else:
-                guest_images[guest] = ''  # No infobox found
-        
-        except requests.exceptions.RequestException:
-            # Handle any request errors (e.g., guest page not found)
-            guest_images[guest] = ''
+                    guest_images[guest] = ''  # No infobox found
+            
+            except requests.exceptions.RequestException:
+                # Handle any request errors (e.g., guest page not found)
+                guest_images[guest] = ''
 
     return guest_images
 
-# # Get images for most frequent guests
+# Get images for most frequent guests
 most_frequent_guest_images = get_guest_images(most_frequent_guests.index)
 
 # Sentiment Bubble Chart Function
@@ -274,7 +317,7 @@ def release_port(port=8050):
         print(f"Error releasing port {port}: {e}")
 
 
-# In[69]:
+# In[17]:
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
@@ -324,7 +367,6 @@ app.layout = dbc.Container([
                         html.Img(id='word-cloud', src=create_word_cloud(), style={'width': '100%', 'object-fit': 'contain', 'flex-grow': '1', 'margin-bottom': '10px', 'flex': '1'}),
                         html.Img(id='joe-background', src='data:image/jpeg;base64,{}'.format(joe_background_image), style={'width': '100%', 'object-fit': 'contain', 'flex-grow': '1', 'flex': '1'})
                     ], style={'height': '100%', 'display': 'flex', 'flex-direction': 'column', 'justify-content': 'space-between'})
-
                 ], width=4, style={'display': 'flex', 'flex-direction': 'column', 'height': '100%'})
             ], className="mb-4"),
             
@@ -566,7 +608,7 @@ app.layout = dbc.Container([
 ], fluid=True, style={'backgroundColor': '#1b1f38', 'overflowX': 'hidden'})  # Top-level container to make the whole app fluid
 
 
-# In[70]:
+# In[ ]:
 
 
 @app.callback(
@@ -601,7 +643,7 @@ def update_post_specific_content(selected_post_title):
             messages = [
                 {
                     "role": "user",
-                    "content": f"Summarize the following comments: {comments_text}",  # Limiting to first 3000 characters
+                    "content": f"Summarize the following comments in 50 words or less: {comments_text}",  # Limiting to first 3000 characters
                     "max_completion_tokens": "50"
                 }
             ],
@@ -617,26 +659,26 @@ def update_post_specific_content(selected_post_title):
         dbc.Col([dbc.Card([
             dbc.CardBody([
                 html.H4("Highest Upvoted Post", className="card-title", style={'color': 'green', 'textAlign': 'center'}),
-                html.P(f"{highest_voted_comment['post_title']}", className="card-text", style={'textAlign': 'center'}),
+                # html.P(f"{highest_voted_comment['post_title']}", className="card-text", style={'textAlign': 'center'}),
                 html.P(f"“{highest_voted_comment['comment_text']}”", className="card-text", style={"fontStyle": "italic", "marginLeft": "20px", 'textAlign': 'center'}),
-                html.P(f"Upvotes: {highest_voted_comment['comment_upvotes']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
+                html.P(f"Upvotes: {highest_voted_comment['comment_upvotes']} | {highest_voted_comment['post_title']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
                 html.H4("Lowest Upvoted Post", className="card-title", style={'color': 'red', 'textAlign': 'center'}),
-                html.P(f"{lowest_voted_comment['post_title']}", className="card-text", style={'textAlign': 'center'}),
+                # html.P(f"{lowest_voted_comment['post_title']}", className="card-text", style={'textAlign': 'center'}),
                 html.P(f"“{highest_voted_comment['comment_text']}”", className="card-text", style={"fontStyle": "italic", "marginLeft": "20px", 'textAlign': 'center'}),
-                html.P(f"Upvotes: {lowest_voted_comment['comment_upvotes']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
+                html.P(f"Upvotes: {lowest_voted_comment['comment_upvotes']} | Post: {lowest_voted_comment['post_title']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
             ])
         ], outline=True, className="mb-4 shadow-lg rounded", style={"border": "1px solid #ddd", "padding": "1rem"}, id='card-a')], width=6),
         
         dbc.Col([dbc.Card([
             dbc.CardBody([
-                html.H4("Highest Voted Comment", className="card-title", style={'color': 'green', 'textAlign': 'center'}),
+                html.H4("Highest Sentiment Comment", className="card-title", style={'color': 'green', 'textAlign': 'center'}),
                 html.P(f"“{highest_sentiment_comment['comment_text']}”", className="card-text", style={"fontStyle": "italic", "marginLeft": "20px", 'textAlign': 'center'}),
                 # html.P(f"{highest_sentiment_comment['comment_text']}", className="card-text"),
-                html.P(f"Upvotes: {highest_sentiment_comment['comment_upvotes']} | Post: {highest_sentiment_comment['post_title']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
-                html.H4("Lowest Voted Comment", className="card-title", style={'color': 'red', 'textAlign': 'center'}),
+                html.P(f"Sentiment: {highest_sentiment_comment['sentiment']:.2f} | Post: {highest_sentiment_comment['post_title']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
+                html.H4("Lowest Sentiment Comment", className="card-title", style={'color': 'red', 'textAlign': 'center'}),
                 html.P(f"“{lowest_sentiment_comment['comment_text']}”", className="card-text", style={"fontStyle": "italic", "marginLeft": "20px", 'textAlign': 'center'}),
                 # html.P(f"{lowest_sentiment_comment['comment_text']}", className="card-text"),
-                html.P(f"Upvotes: {lowest_sentiment_comment['comment_upvotes']} | Post: {lowest_sentiment_comment['post_title']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
+                html.P(f"Sentiment: {lowest_sentiment_comment['sentiment']:.2f} | Post: {lowest_sentiment_comment['post_title']}", className="card-text", style={'font-weight': 'bold', 'textAlign': 'center'}),
             ])
         ], outline=True, className="mb-4 shadow-lg rounded", style={"border": "1px solid #ddd", "padding": "1rem"}, id='card-b')], width=6)
     ])
@@ -678,7 +720,7 @@ def update_post_specific_content(selected_post_title):
         hoverinfo='text+y+name'
     ))
     fig.update_layout(title='Comment Upvotes vs Sentiment',
-                      xaxis_title='# Comments (oldest-newest)',
+                      xaxis_title='Comments (oldest-newest)',
                       yaxis_title='Comment Upvotes',
                       template='plotly_dark')
     comment_upvotes_vs_sentiment_graph = dbc.Row([
@@ -688,12 +730,12 @@ def update_post_specific_content(selected_post_title):
     return {'display': 'none'}, {'display': 'block'}, [post_summary, comment_upvotes_vs_sentiment_graph, comment_stats_cards]
 
 
-# In[71]:
+# In[18]:
 
 
 if __name__ == '__main__':
     release_port()  # Release the port before starting the server
-    app.run(host='0.0.0.0', port=8050)
+    app.run(host='0.0.0.0', port=8050, debug=False)
 
 
 # In[ ]:
