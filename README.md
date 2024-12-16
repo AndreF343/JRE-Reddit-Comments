@@ -104,13 +104,13 @@ To see other notable data points, do visit the [dashboard](https://jrdashboard.c
 <div align="center">
 <h1>Project Wrap-Up</h1>
 </div>
-As of 16<sup>th</sup> December 2024 I'm most likely done developing this project. The last thing I did was secure the dashboard with cloudflare so that traffic to and from my dashboard is properly encrypted and people aren't immediately scared to continue. It's the first project in my portfolio as I look for a new job in data and I'm very proud of it. It demonstrates my capacity:
+As of 16<sup>th</sup> December 2024 I'm most likely done developing this project. The last thing I did was secure the dashboard with cloudflare so that its traffic is properly encrypted and people aren't immediately scared to continue. It's the first project in my portfolio as I look for a new job in data and I'm very proud of it. It demonstrates my capacity:
 
 
 - to use Python, SQL and Databases, Docker and cloud based tools as found in AWS.
 - to create an automated ETL pipeline.
 - to use AI tools by integration with OpenAI.
-- to go out and get data where it might not be readily available and to overcome challenges as they arise (lack of api, ip blocking, bot detectors).
+- to go out and get data where it might not be readily available and to overcome challenges as they arise (lack of API, IP blocking, bot-detectors).
 - to follow-through on a goal and deliver a viable product.
 
 I'll be starting my next project focused on training a computer-vision based model that can identify and count actions difficult for a humans to perceive. Links to come shortly!
