@@ -41,8 +41,11 @@ This repository contains a sample dataset and a dockerized demo of the dashboard
 
 
 1. **Get Reddit URLs**: Developed custom scripts to find relevant posts on the r/joerogan subreddit that pertain specifically to JRE episodes. Pulled data such as post [author, score, data, title] and comment [author, score, comment text]
+
 2. **EC2 Deployment**: The entire pipeline runs on an Amazon EC2 instance, with automation that allows the process to run without manual intervention, and alerts for errors and cpu overutilization.
+
 3. **Nightly Transform & Backups**: Data scraped from Reddit is backed up nightly, ensuring data consistency and minimizing risk of loss. After raw data and database backups, cleanings and transformations are performed to engineer features such as comment [sentiment, comment_depth, tokens]
+
 4. **Display Data**: Nightly, new data is read from DB and displayed on a publicly accessible dashboard.
 
 ![image](https://github.com/user-attachments/assets/7a21b8a5-29ad-48fd-b9aa-c069b174b50a)
@@ -84,6 +87,7 @@ To build and deploy the Dockerized dashboard, follow these steps:
 </div>
 Initially I'd wanted to perform more complex analysis on the data, but collecting the data became so time consuming that I think there are diminishing returns on continuing work on this particular hobby project. The scraper ran for about 1 month and was able to analyze over 1000+ posts.
 
+
 The average sentiment score of JRE reddit posts was `0.13` in February 2013. This fell to `0.07` in May of 2024. On a scale of 1:-1, this is a negligible amount that doesn't demonstrate much change in sentiment.
 
 To see other notable data points, do visit the [dashboard](https://jrdashboard.com/).
@@ -93,12 +97,14 @@ To see other notable data points, do visit the [dashboard](https://jrdashboard.c
 </div>
 
 - If you were paying me to work on this, I'd look into analyzing the topic-specific sentiment of comments. In other words, determine the average sentiment score of specific topics discussed in the comments. For example, since Trump is a frequently mentioned topic on the JRE, the sentiment score specific to Trump could be calculated.
+
 - There are over 500 missing posts that were deleted for one reason or another. I think some of the most interesting questions could be posed against deleted/missing posts. Which guest was the most censored/removed from JRE history? Were there specific fields that had more post deletions than others (example. eye-tests indicated that posts related to politics were being removed at a higher rate than others)?
 
 <div align="center">
 <h1>Project Wrap-Up</h1>
 </div>
 As of 16<sup>th</sup> December 2024 I'm most likely done developing this project. The last thing I did was secure the dashboard with cloudflare so that traffic to and from my dashboard is properly encrypted and people aren't immediately scared to continue. It's the first project in my portfolio as I look for a new job in data and I'm very proud of it. It demonstrates my capacity:
+
 
 - to use Python, SQL and Databases, Docker and cloud based tools as found in AWS.
 - to create an automated ETL pipeline.
