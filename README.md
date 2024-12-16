@@ -87,8 +87,9 @@ To build and deploy the Dockerized dashboard, follow these steps:
 </div>
 Initially I'd wanted to perform more complex analysis on the data, but collecting the data became so time consuming that I think there are diminishing returns on continuing work on this particular hobby project. The scraper ran for about 1 month and was able to analyze over 1000+ posts.
 
+The average sentiment score of JRE reddit posts was `0.13` in February 2013. This fell to `0.07` in May of 2024. On a scale of 1 (positive):-1 (negative), this is a negligible amount that doesn't demonstrate much change in sentiment.
 
-The average sentiment score of JRE reddit posts was `0.13` in February 2013. This fell to `0.07` in May of 2024. On a scale of 1:-1, this is a negligible amount that doesn't demonstrate much change in sentiment.
+The model used to calculated the sentiment score was VADER which while trained on twitter data, failed to perform well on reddit comment data, often missing sarcasm and other internet-isms.
 
 To see other notable data points, do visit the [dashboard](https://jrdashboard.com/).
 
