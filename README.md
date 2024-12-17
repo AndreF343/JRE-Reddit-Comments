@@ -1,4 +1,4 @@
-<div align="center"><h1>Joe Rogan Experience Comment Sentiment Analysis Project</h1></div>
+<div align="center"><h1>Joe Rogan Experience Sentiment Analysis Project</h1></div>
 
 ![image](https://github.com/user-attachments/assets/61fd3dfc-532a-4cc6-8401-18831a30bdd1)
 
